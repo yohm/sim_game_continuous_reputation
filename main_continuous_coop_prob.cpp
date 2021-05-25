@@ -19,7 +19,7 @@ void Simulate(const ContinuousStrategy& strategy, std::ostream* snapout = nullpt
   ContinuousGame::population_t population = {{strategy, N}};  // map of StrategyID & its size
   ContinuousGame g(population, 1234ul);
   g.Update(t_init, q, epsilon);
-  g.RestCoopCount();
+  g.ResetCoopCount();
 
   ContinuousGame::good_count_t g_count;
   const size_t N_measure = 1000, delta_t = 100;
@@ -56,7 +56,7 @@ void RandomInvaders(const ContinuousStrategy& resident, long n_trials, uint64_t 
     ContinuousGame::population_t population = {{resident, N_res}, {mutant, N_mut}};  // map of StrategyID & its size
     ContinuousGame g(population, rnd());
     g.Update(t_init * N, q, epsilon);
-    g.RestCoopCount();
+    g.ResetCoopCount();
 
     g.Update(t_measure * N, q, epsilon);
 

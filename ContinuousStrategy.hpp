@@ -9,11 +9,11 @@
 // Cooperate : 1, Defect : 0
 // Good : 1, Bad : 0
 
-using assessment_rule_t = std::function<double(double,double,double)>;
-using action_rule_t = std::function<double(double,double)>;
 
 class ContinuousStrategy {
   public:
+  using assessment_rule_t = std::function<double(double,double,double)>;
+  using action_rule_t = std::function<double(double,double)>;
   ContinuousStrategy(const assessment_rule_t &assess, const action_rule_t &action) : assess(assess), action(action) {};
   assessment_rule_t assess;
   action_rule_t action;
@@ -22,10 +22,12 @@ class ContinuousStrategy {
   const static ContinuousStrategy AllC;
   const static ContinuousStrategy AllD;
   static ContinuousStrategy ConstructFromEdgeValues(const std::array<double,4>& betas, const std::array<double,8>& alphas) {
+    // construct beta by bi-linear interpolation
     // betas[0] = beta_00, betas[1] = beta_01, ... , beta[3] = beta_11
     action_rule_t beta = [betas](double x, double y) {
       return (1.0-x)*( betas[0b01]*y + betas[0b00]*(1.0-y) ) + x*( betas[0b11]*y + betas[0b10]*(1.0-y) );
     };
+    // construct alpha by tri-linear interpolation
     // alphas[0] = alpha_000, alphas[1] = alpha_001, ... , alphas[7] = alpha_111
     assessment_rule_t alpha = [alphas](double x, double y, double z) {
       double z0 = (1.0-x)*( alphas[0b010]*y + alphas[0b000]*(1.0-y) ) + x*( alphas[0b110]*y + alphas[0b100]*(1.0-y) );

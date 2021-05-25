@@ -24,7 +24,7 @@ class ContinuousGame {
     N = strategies.size();
     M.resize(N);
     for (size_t i = 0; i < N; i++) { M[i].resize(N, 1.0); }
-    RestCoopCount();
+    ResetCoopCount();
   }
 
   void Update(size_t t_max, double q, double epsilon) {
@@ -68,7 +68,7 @@ class ContinuousGame {
   // value: [number of cooperation] / [number of actions (cooperation + defection)
   coop_count_t GetCoopCount() const { return coop_count; }
 
-  void RestCoopCount() {
+  void ResetCoopCount() {
     coop_count.clear();
     size_t N_species = population.size();
     for (size_t i = 0; i < N_species; i++) {
