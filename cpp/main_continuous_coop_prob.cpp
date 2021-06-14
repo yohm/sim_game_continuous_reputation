@@ -8,7 +8,6 @@
 #include "ContinuousStrategy.hpp"
 #include "ContinuousGame.hpp"
 
-
 void Simulate(const ContinuousStrategy& strategy, std::ostream* snapout = nullptr) {
   const size_t N = 90;
   const size_t t_init = N * 1'000;
@@ -40,7 +39,7 @@ void RandomInvaders(const ContinuousStrategy& resident, long n_trials, uint64_t 
   const size_t N = 100;
   const size_t N_res = N * 0.9, N_mut = N * 0.1;
   const size_t t_init = 1'000, t_measure = 1'000;
-  const double q = 0.9;
+  const double q = 0.4;
   const double epsilon = 0.1;
   const double b = 2.0, c = 1.0;
 
@@ -51,6 +50,11 @@ void RandomInvaders(const ContinuousStrategy& resident, long n_trials, uint64_t 
     std::array<double,8> alphas;
     for (int i = 0; i < 4; i++) { betas[i] = uni(rnd); }
     for (int i = 0; i < 8; i++) { alphas[i] = uni(rnd); }
+    betas[0b00] = 0;
+    betas[0b01] = 1;
+    betas[0b10] = 0;
+    betas[0b11] = 1;
+    alphas[0b111] = 1;
     ContinuousStrategy mutant = ContinuousStrategy::ConstructFromEdgeValues(betas, alphas);
 
     ContinuousGame::population_t population = {{resident, N_res}, {mutant, N_mut}};  // map of StrategyID & its size
@@ -70,10 +74,10 @@ void RandomInvaders(const ContinuousStrategy& resident, long n_trials, uint64_t 
        b * (coop_count.at({0,1})[0] + coop_count.at({1,1})[0])
       -c * (coop_count.at({1,0})[0] + coop_count.at({1,1})[0])
     ) / (N_mut * t_measure);
-    std::cout << payoff_res << ' ' << payoff_mut << ' ' << payoff_mut - payoff_res << std::endl;
-    if (payoff_mut > payoff_res) {
-      IC(payoff_res, payoff_mut, betas, alphas);
-    }
+    std::cout << alphas[0] << ' ' << alphas[1] << ' ' << alphas[2] << ' ' << alphas[3] << ' ' << alphas[4] << ' ' << alphas[5] << ' ' << alphas[6] << ' ' << alphas[7] << ' ';
+    std::cout << betas[0] << ' ' << betas[1] << ' ' << betas[2] << ' ' << betas[3] << ' ';
+    std::cout << payoff_res << ' ' << payoff_mut << ' ' << std::endl;
+    // if (payoff_mut > payoff_res) { IC(payoff_res, payoff_mut, betas, alphas); }
   }
 }
 
@@ -89,7 +93,7 @@ int main(int argc, char* argv[]) {
   ContinuousStrategy l3_cont = ContinuousStrategy::ConstructFromBinaryStrategy(l3);
   // Simulate(l3_cont);
 
-  RandomInvaders(l3_cont, 10'000, 1234ull);
+  RandomInvaders(l3_cont, 100, 1234ull);
 
   return 0;
 }

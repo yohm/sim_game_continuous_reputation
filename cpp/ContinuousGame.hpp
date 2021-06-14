@@ -6,8 +6,8 @@
 #include <map>
 #include <array>
 #include <random>
+#include <iomanip>
 #include "ContinuousStrategy.hpp"
-
 
 class ContinuousGame {
   public:
@@ -27,7 +27,7 @@ class ContinuousGame {
     ResetCoopCount();
   }
 
-  void Update(size_t t_max, double q, double epsilon) {
+  void Update(size_t t_max, double q, double epsilon, double impl_error_prob = 0.1) {
     for (size_t t = 0; t < t_max; t++) {
       // randomly choose donor & recipient
       size_t donor = static_cast<size_t>(R01() * N);
@@ -35,6 +35,8 @@ class ContinuousGame {
       while (recip == donor) { recip = static_cast<size_t>(R01() * N); }
 
       double action = strategies[donor].Act( M[donor][donor], M[donor][recip] );
+      // implementation error
+      if(R01() < impl_error_prob) action = R01();
 
       auto key = std::make_pair(strategy_index[donor], strategy_index[recip]);
       coop_count[key][0] += action;
