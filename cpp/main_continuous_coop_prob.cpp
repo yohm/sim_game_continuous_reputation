@@ -36,11 +36,11 @@ void Simulate(const ContinuousStrategy& strategy, std::ostream* snapout = nullpt
 }
 
 void SimulateRelaxation(const ContinuousStrategy& strategy, double q, uint64_t seed) {
-  const size_t N = 100;
+  const size_t N = 50;
   const double m_low = 0.9;
   ContinuousGame::population_t population = {{strategy, N}};  // map of StrategyID & its size
 
-  const size_t N_sample = 200, t_max = 1000;
+  const size_t N_sample = 1000, t_max = 3000;
   std::vector<std::vector<double>> a_ans(N_sample);
   #pragma omp parallel for
   for (size_t i = 0; i < N_sample; i++) {
@@ -56,7 +56,12 @@ void SimulateRelaxation(const ContinuousStrategy& strategy, double q, uint64_t s
     for (size_t i = 0; i < N_sample; i++) {
       x += a_ans[i][t];
     }
-    std::cout << t << ' ' << x / N_sample << "\n";
+    double ave = x / N_sample;
+    double var = 0.0;
+    for (size_t i = 0; i < N_sample; i++) {
+      var += (ave-a_ans[i][t])*(ave-a_ans[i][t]);
+    }
+    std::cout << t << ' ' << ave << ' ' << std::sqrt(var/(N_sample*(N_sample-1))) << "\n";
   }
 }
 
@@ -114,10 +119,44 @@ int main(int argc, char* argv[]) {
   // ContinuousStrategy str(assess_rule, act_rule);
   // Simulate(str, &std::cout);
 
-  BinaryStrategy l3(BinaryStrategy::L3_id);
-  ContinuousStrategy l3_cont = ContinuousStrategy::ConstructFromBinaryStrategy(l3);
+  if (argc != 3) {
+    std::cerr << argv[0] << " <q> <strategy>" << std::endl;
+    throw std::runtime_error("invalid number of arguments");
+  }
   double q = std::stod(argv[1]);
-  SimulateRelaxation(l3_cont, q, 123456789ull);
+  int s = std::stol(argv[2]);
+  BinaryStrategy b;
+  if (s == 0) {
+    b = BinaryStrategy::IS;
+  }
+  else if (s == 1) {
+    b = BinaryStrategy::L1_id;
+  }
+  else if (s == 2) {
+    b = BinaryStrategy::L2_id;
+  }
+  else if (s == 3) {
+    b = BinaryStrategy::L3_id;
+  }
+  else if (s == 4) {
+    b = BinaryStrategy::L4_id;
+  }
+  else if (s == 5) {
+    b = BinaryStrategy::L5_id;
+  }
+  else if (s == 6) {
+    b = BinaryStrategy::L6_id;
+  }
+  else if (s == 7) {
+    b = BinaryStrategy::L7_id;
+  }
+  else if (s == 8) {
+    b = BinaryStrategy::L8_id;
+  }
+  ContinuousStrategy cont = ContinuousStrategy::ConstructFromBinaryStrategy(b);
+  SimulateRelaxation(cont, q, 123456789ull);
+  // BinaryStrategy l3(BinaryStrategy::L3_id);
+  // ContinuousStrategy l3_cont = ContinuousStrategy::ConstructFromBinaryStrategy(l3);
   // Simulate(l3_cont);
   // RandomInvaders(l3_cont, 100, 1234ull);
 

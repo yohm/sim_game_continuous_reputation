@@ -44,7 +44,8 @@ class ContinuousGame {
 
       // updating the donor's reputation
       for (size_t obs = 0; obs < N; obs++) {
-        if (obs == donor || obs == recip || R01() < q) {  // observe with probability q
+        // if (obs == donor || obs == recip || R01() < q) {  // observe with probability q
+        if (R01() < q) {  // observe with probability q
           double a_obs = (R01() < 1.0 - epsilon) ? action : R01();
           double new_rep = strategies[obs].Assess(a_obs, M[obs][donor], M[obs][recip]);
           M[obs][donor] = new_rep;
@@ -59,18 +60,6 @@ class ContinuousGame {
         M[i][j] = m_dist(rnd);
       }
     }
-    /*
-    for (size_t i = 0; i < N; i++) {
-      for (size_t j = 0; j < N; j++) {
-        if (R01() < 0.2) {
-          M[i][j] = 0.9;
-        }
-        else {
-          M[i][j] = 1.0;
-        }
-      }
-    }
-    */
   }
 
   std::vector<double> UpdateWithoutError(size_t t_max, double q) {

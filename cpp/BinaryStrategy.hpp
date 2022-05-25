@@ -42,6 +42,7 @@ class BinaryStrategy {
   ActionRule action;
   uint64_t Act(uint64_t donor_rep, uint64_t recip_rep) const { return action.Act(donor_rep, recip_rep); }
   uint64_t Assess(uint64_t action, uint64_t donor_rep, uint64_t recip_rep) const { return assess.Assess(action, donor_rep, recip_rep); }
+  constexpr static uint64_t IS = 0b11110000'1010;
   constexpr static uint64_t L1_id = 0b11110100'1011;
   constexpr static uint64_t L2_id = 0b10110100'1011;
   constexpr static uint64_t L3_id = 0b11110101'1010;
