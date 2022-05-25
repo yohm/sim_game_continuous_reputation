@@ -59,6 +59,18 @@ class ContinuousGame {
         M[i][j] = m_dist(rnd);
       }
     }
+    /*
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < N; j++) {
+        if (R01() < 0.2) {
+          M[i][j] = 0.9;
+        }
+        else {
+          M[i][j] = 1.0;
+        }
+      }
+    }
+    */
   }
 
   std::vector<double> UpdateWithoutError(size_t t_max, double q) {
@@ -74,26 +86,28 @@ class ContinuousGame {
 
     std::vector<double> avg_m_t(t_max, 0.0);
     for (size_t t = 0; t < t_max; t++) {
-      // randomly choose donor & recipient
-      size_t donor = uni_N(rnd);
-      size_t recip = (donor + uni_N1(rnd)) % N;
+      for (size_t t1 = 0; t1 < N; t1++) {
+        // randomly choose donor & recipient
+        size_t donor = uni_N(rnd);
+        size_t recip = (donor + uni_N1(rnd)) % N;
+        double action = strategies[donor].Act( M[donor][donor], M[donor][recip] );
 
-      double action = strategies[donor].Act( M[donor][donor], M[donor][recip] );
+        auto key = std::make_pair(strategy_index[donor], strategy_index[recip]);
+        coop_count[key][0] += action;
+        coop_count[key][1] += 1.0;
 
-      auto key = std::make_pair(strategy_index[donor], strategy_index[recip]);
-      coop_count[key][0] += action;
-      coop_count[key][1] += 1.0;
-
-      // updating the donor's reputation
-      double new_hscore = 0.0;
-      for (size_t obs = 0; obs < N; obs++) {
-        if (obs == donor || obs == recip || R01() < q) {  // observe with probability q
-          double new_rep = strategies[obs].Assess(action, M[obs][donor], M[obs][recip]);
-          M[obs][donor] = new_rep;
+        // updating the donor's reputation
+        double new_hscore = 0.0;
+        for (size_t obs = 0; obs < N; obs++) {
+          // if (obs == donor || obs == recip || R01() < q) {  // observe with probability q
+          if (R01() < q) {  // observe with probability q
+            double new_rep = strategies[obs].Assess(action, M[obs][donor], M[obs][recip]);
+            M[obs][donor] = new_rep;
+          }
+          new_hscore += M[obs][donor];
         }
-        new_hscore += M[obs][donor];
+        h_scores[donor] = new_hscore / N;
       }
-      h_scores[donor] = new_hscore / N;
 
       // calculate overall m_avg
       double s = 0.0;

@@ -35,21 +35,28 @@ void Simulate(const ContinuousStrategy& strategy, std::ostream* snapout = nullpt
   }
 }
 
-void SimulateRelaxation(const ContinuousStrategy& strategy, uint64_t seed) {
+void SimulateRelaxation(const ContinuousStrategy& strategy, double q, uint64_t seed) {
   const size_t N = 100;
-  const double q = 1.0;
   const double m_low = 0.9;
   ContinuousGame::population_t population = {{strategy, N}};  // map of StrategyID & its size
 
-  const size_t N_sample = 1, t = 100;
+  const size_t N_sample = 200, t_max = 1000;
+  std::vector<std::vector<double>> a_ans(N_sample);
+  #pragma omp parallel for
   for (size_t i = 0; i < N_sample; i++) {
+    if (i % 20 == 0) std::cerr << i << std::endl;
     ContinuousGame g(population, seed + i);
     g.RandomizeM(std::uniform_real_distribution<double>(m_low, 1.0));
-    auto ans = g.UpdateWithoutError(t, q);
+    a_ans[i] = g.UpdateWithoutError(t_max, q);
+  }
 
-    for (size_t t = 0; t < ans.size(); t++) {
-      std::cout << ans[t] << std::endl;
+  // print averaged time series
+  for (size_t t = 0; t < t_max; t++) {
+    double x = 0.0;
+    for (size_t i = 0; i < N_sample; i++) {
+      x += a_ans[i][t];
     }
+    std::cout << t << ' ' << x / N_sample << "\n";
   }
 }
 
@@ -109,7 +116,8 @@ int main(int argc, char* argv[]) {
 
   BinaryStrategy l3(BinaryStrategy::L3_id);
   ContinuousStrategy l3_cont = ContinuousStrategy::ConstructFromBinaryStrategy(l3);
-  SimulateRelaxation(l3_cont, 123456789ull);
+  double q = std::stod(argv[1]);
+  SimulateRelaxation(l3_cont, q, 123456789ull);
   // Simulate(l3_cont);
   // RandomInvaders(l3_cont, 100, 1234ull);
 
