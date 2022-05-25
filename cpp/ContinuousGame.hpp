@@ -53,6 +53,57 @@ class ContinuousGame {
     }
   }
 
+  void RandomizeM(std::uniform_real_distribution<double> m_dist) {
+    for (size_t i = 0; i < N; i++) {
+      for (size_t j = 0; j < N; j++) {
+        M[i][j] = m_dist(rnd);
+      }
+    }
+  }
+
+  std::vector<double> UpdateWithoutError(size_t t_max, double q) {
+    std::uniform_int_distribution<size_t> uni_N(0, N-1), uni_N1(0, N-2);
+
+    // calculate h-scores
+    std::vector<double> h_scores(N, 0.0);   // h_score[i]: average of M[*][i], average reputation on i
+    for (size_t i = 0; i < N; i++) {
+      double avg_mi = 0.0;
+      for (size_t j = 0; j < N; j++) { avg_mi += M[j][i]; }
+      h_scores[i] = avg_mi / N;
+    }
+
+    std::vector<double> avg_m_t(t_max, 0.0);
+    for (size_t t = 0; t < t_max; t++) {
+      // randomly choose donor & recipient
+      size_t donor = uni_N(rnd);
+      size_t recip = (donor + uni_N1(rnd)) % N;
+
+      double action = strategies[donor].Act( M[donor][donor], M[donor][recip] );
+
+      auto key = std::make_pair(strategy_index[donor], strategy_index[recip]);
+      coop_count[key][0] += action;
+      coop_count[key][1] += 1.0;
+
+      // updating the donor's reputation
+      double new_hscore = 0.0;
+      for (size_t obs = 0; obs < N; obs++) {
+        if (obs == donor || obs == recip || R01() < q) {  // observe with probability q
+          double new_rep = strategies[obs].Assess(action, M[obs][donor], M[obs][recip]);
+          M[obs][donor] = new_rep;
+        }
+        new_hscore += M[obs][donor];
+      }
+      h_scores[donor] = new_hscore / N;
+
+      // calculate overall m_avg
+      double s = 0.0;
+      for (double h: h_scores) { s += h; }
+      avg_m_t[t] = s / N;
+    }
+
+    return avg_m_t;
+  }
+
   using coop_count_t = std::map< std::pair<size_t,size_t>, std::array<double,2> >;
   using good_count_t = std::map< std::pair<size_t,size_t>, double>;
 

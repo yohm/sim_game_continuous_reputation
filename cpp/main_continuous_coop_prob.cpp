@@ -35,6 +35,24 @@ void Simulate(const ContinuousStrategy& strategy, std::ostream* snapout = nullpt
   }
 }
 
+void SimulateRelaxation(const ContinuousStrategy& strategy, uint64_t seed) {
+  const size_t N = 100;
+  const double q = 1.0;
+  const double m_low = 0.9;
+  ContinuousGame::population_t population = {{strategy, N}};  // map of StrategyID & its size
+
+  const size_t N_sample = 1, t = 100;
+  for (size_t i = 0; i < N_sample; i++) {
+    ContinuousGame g(population, seed + i);
+    g.RandomizeM(std::uniform_real_distribution<double>(m_low, 1.0));
+    auto ans = g.UpdateWithoutError(t, q);
+
+    for (size_t t = 0; t < ans.size(); t++) {
+      std::cout << ans[t] << std::endl;
+    }
+  }
+}
+
 void RandomInvaders(const ContinuousStrategy& resident, long n_trials, uint64_t seed) {
   const size_t N = 100;
   const size_t N_res = N * 0.9, N_mut = N * 0.1;
@@ -91,9 +109,9 @@ int main(int argc, char* argv[]) {
 
   BinaryStrategy l3(BinaryStrategy::L3_id);
   ContinuousStrategy l3_cont = ContinuousStrategy::ConstructFromBinaryStrategy(l3);
+  SimulateRelaxation(l3_cont, 123456789ull);
   // Simulate(l3_cont);
-
-  RandomInvaders(l3_cont, 100, 1234ull);
+  // RandomInvaders(l3_cont, 100, 1234ull);
 
   return 0;
 }
